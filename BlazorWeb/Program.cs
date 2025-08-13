@@ -5,6 +5,7 @@ using GenericHttpClientBase;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using System.Net.Http.Headers;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -26,15 +27,13 @@ builder.Services.AddHttpClient("Auth", client =>
     client.BaseAddress = new Uri(builder.Configuration.GetValue<string>("ApiGateway:Server1") ?? "https://localhost:7058");
 });
 
-// 2. HttpClient cho các API CRUD cần xác thực
-// Sử dụng DelegatingHandler để tự động gắn token và xử lý khi token hết hạn
-builder.Services.AddHttpClient("Api", client =>
+// Đăng ký IGenericHttpClient với một HttpClient đã được cấu hình
+builder.Services.AddHttpClient<IGenericHttpClient, GenericHttpClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration.GetValue<string>("ApiGateway:Server1") ?? "https://localhost:7058");
-}).AddHttpMessageHandler<TokenHandler>(); // Gắn handler vào đây
-
-// Đăng ký service generic
-builder.Services.AddScoped(typeof(IGenericApiService<>), typeof(GenericApiService<>));
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    // Thêm các header mặc định khác ở đây nếu cần
+}).AddHttpMessageHandler<TokenHandler>(); // Gắn handler vào đây;
 
 builder.Services.AddOidcAuthentication(options =>
 {

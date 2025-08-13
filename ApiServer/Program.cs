@@ -1,11 +1,17 @@
-﻿using EfCoreServices.Data;
+﻿using ApiServer.Endpoints;
+using EfCoreServices.Data;
 using EfCoreServices.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var bhxhDbConnectionString = builder.Configuration.GetConnectionString("Employee") ?? throw new InvalidOperationException("Connection string 'Employee' not found.");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(bhxhDbConnectionString).UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
 
 builder.Services.AddIdentity<AppUser, IdentityRole>() // Sử dụng IdentityRole mặc định
     .AddEntityFrameworkStores<AppDbContext>()
@@ -73,6 +79,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapAuthEndpoints();
 
 app.Run();
 

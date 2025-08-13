@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dtos\Dtos.csproj" />
+    <ProjectReference Include="..\EfCoreServices\EfCoreServices.csproj" />
     <ProjectReference Include="..\GenericHttpClientBase\GenericHttpClientBase.csproj" />
   </ItemGroup>
 

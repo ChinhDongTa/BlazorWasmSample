@@ -3,7 +3,7 @@
 /// <summary>
 /// Thông tin phản hồi đăng nhập hệ thống
 /// </summary>
-public record LoginReponse
+public record LoginResponse
 {
     public string TokenType { get; set; } = string.Empty;
     public string AccessToken { get; set; } = string.Empty;

@@ -97,7 +97,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
             var response = await client.PostAsJsonAsync("login", loginDto);
             if (response != null)
             {
-                var loginReponse = await response.Content.ReadFromJsonAsync<LoginReponse>();
+                var loginReponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (loginReponse != null)
                 {
                     SetAuthenticationTokens(loginReponse);
@@ -132,7 +132,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         var response = await client.PostAsJsonAsync("refresh", new RefreshTokenRequest(refreshToken));
         if (response != null)
         {
-            var loginReponse = await response.Content.ReadFromJsonAsync<LoginReponse>();
+            var loginReponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (loginReponse != null)
             {
                 SetAuthenticationTokens(loginReponse);
@@ -186,7 +186,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     /// Set authentication tokens in local storage and notify the authentication state change.
     /// </summary>
     /// <param name="response"></param>
-    private void SetAuthenticationTokens(LoginReponse response)
+    private void SetAuthenticationTokens(LoginResponse response)
     {
         LocalStorage.SetItem("accessToken", response.AccessToken);
         LocalStorage.SetItem("refreshToken", response.RefreshToken);
