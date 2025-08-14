@@ -112,9 +112,17 @@ public class GenericHttpClient : IGenericHttpClient
         }
         catch (JsonException ex) // Bắt lỗi nếu nội dung response không phải là JSON hợp lệ
         {
-            Console.WriteLine($"Failed to deserialize JSON response: {ex.Message}");
+            //Console.WriteLine($"Failed to deserialize JSON response: {ex.Message}");
             // _logger.LogError(ex, "Failed to deserialize JSON response from {RequestUri}", request.RequestUri);
-            throw new ApiException($"Failed to deserialize JSON response. See inner exception for details. Uri: {request.RequestUri}", System.Net.HttpStatusCode.InternalServerError, null);
+            throw new ApiException(
+                    $"Failed to deserialize JSON response. See inner exception for details. Uri: {request.RequestUri}",
+                    System.Net.HttpStatusCode.InternalServerError,
+                    new ApiErrorResponse()
+                    {
+                        Message = ex.Message,
+                        Errors = ex.Data.Values.Cast<object>().Select(key => key.ToString() ?? "")
+                    }
+                );
         }
     }
 
@@ -135,12 +143,13 @@ public class GenericHttpClient : IGenericHttpClient
                 errorMessage = error.Message ?? errorMessage;
             }
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
             // Nếu nội dung lỗi không phải là JSON, chỉ cần đọc nó dưới dạng chuỗi
             var rawError = await response.Content.ReadAsStringAsync(cancellationToken);
             // _logger.LogWarning("Could not deserialize error response as JSON. Raw response: {RawError}", rawError);
             errorMessage = rawError;
+            error = new ApiErrorResponse() { Message = rawError, Errors = ex.Data.Values.Cast<object>().Select(key => key.ToString() ?? "") };
         }
 
         throw new ApiException(errorMessage, response.StatusCode, error);
