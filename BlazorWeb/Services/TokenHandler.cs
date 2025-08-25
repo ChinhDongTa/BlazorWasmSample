@@ -29,6 +29,7 @@ public class TokenHandler(CustomAuthStateProvider tokenService, NavigationManage
                 }
             }
         }
+
         //Gửi yêu cầu đầu tiên
         var response = await base.SendAsync(request, cancellationToken);
 

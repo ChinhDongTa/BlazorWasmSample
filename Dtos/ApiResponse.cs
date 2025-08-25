@@ -13,6 +13,28 @@ public sealed record ApiResult<T>
     public IDictionary<string, string[]>? Errors { get; init; }
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
 
+    // Add validation method
+    //public void EnsureSuccess()
+    //{
+    //    if (!IsSuccess)
+    //    {
+    //        throw new ApiException(Message, System.Net.HttpStatusCode.BadRequest,
+    //            new ApiErrorResponse
+    //            {
+    //                ErrorCode = ErrorCode,
+    //                Errors = Errors
+    //            });
+    //    }
+    //}
+
+    // Add convenience methods
+    public T GetData() => Data ?? throw new InvalidOperationException("No data available");
+
+    public bool HasErrors => !IsSuccess && (Errors?.Count > 0);
+
+    // Add implicit conversion for common types
+    public static implicit operator T?(ApiResult<T> result) => result.Data;
+
     // ----- Factory methods -----
 
     public static ApiResult<T> Success(

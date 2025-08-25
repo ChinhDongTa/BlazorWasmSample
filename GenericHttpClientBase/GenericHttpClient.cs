@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -19,15 +20,19 @@ public class GenericHttpClient : IGenericHttpClient
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
-    // Tùy chọn: Thêm ILogger để ghi log
-    // private readonly ILogger<GenericHttpClient> _logger;
+    private readonly ILogger<GenericHttpClient> _logger;
 
     // Pattern tốt hơn là inject trực tiếp HttpClient đã được cấu hình
     // thay vì IHttpClientFactory.
-    public GenericHttpClient(HttpClient httpClient /*, ILogger<GenericHttpClient> logger */)
+    public GenericHttpClient(HttpClient httpClient, ILogger<GenericHttpClient> logger)
     {
-        _httpClient = httpClient;
-        // _logger = logger;
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        if (_httpClient.BaseAddress == null)
+        {
+            throw new InvalidOperationException("HttpClient's BaseAddress must be set.");
+        }
 
         _jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -79,16 +84,17 @@ public class GenericHttpClient : IGenericHttpClient
             Content = JsonContent.Create(data, options: _jsonSerializerOptions)
         };
 
-        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            await HandleErrorResponse(response, cancellationToken);
-            // HandleErrorResponse sẽ ném exception, dòng này thực chất sẽ không được chạy
-            return Stream.Null;
+            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode(); // Throw on error status codes.
+            return await response.Content.ReadAsStreamAsync(cancellationToken);
         }
-
-        return await response.Content.ReadAsStreamAsync(cancellationToken);
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Request failed for {RequestUri}", request.RequestUri);
+            throw;
+        }
     }
 
     /// <summary>
@@ -97,32 +103,38 @@ public class GenericHttpClient : IGenericHttpClient
     /// </summary>
     private async Task<TResponse?> SendRequestAndProcessResponse<TResponse>(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        _logger.LogInformation("Sending request to {RequestUri}", request.RequestUri);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            // Xử lý lỗi một cách chi tiết
-            await HandleErrorResponse(response, cancellationToken);
-        }
-
-        // Nếu thành công, deserialize nội dung
         try
         {
-            return await response.Content.ReadFromJsonAsync<TResponse>(_jsonSerializerOptions, cancellationToken);
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                await HandleErrorResponse(response, cancellationToken);
+            }
+
+            try
+            {
+                return await response.Content.ReadFromJsonAsync<TResponse>(_jsonSerializerOptions, cancellationToken);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize JSON response from {RequestUri}", request.RequestUri);
+                throw new ApiException(
+                        $"Failed to deserialize JSON response. See inner exception for details. Uri: {request.RequestUri}",
+                        response.StatusCode,
+                        new ApiErrorResponse()
+                        {
+                            Message = ex.Message,
+                            Errors = ex.Data.Values.Cast<object>().Select(key => key.ToString() ?? "")
+                        }
+                    );
+            }
         }
-        catch (JsonException ex) // Bắt lỗi nếu nội dung response không phải là JSON hợp lệ
+        catch (HttpRequestException ex)
         {
-            //Console.WriteLine($"Failed to deserialize JSON response: {ex.Message}");
-            // _logger.LogError(ex, "Failed to deserialize JSON response from {RequestUri}", request.RequestUri);
-            throw new ApiException(
-                    $"Failed to deserialize JSON response. See inner exception for details. Uri: {request.RequestUri}",
-                    System.Net.HttpStatusCode.InternalServerError,
-                    new ApiErrorResponse()
-                    {
-                        Message = ex.Message,
-                        Errors = ex.Data.Values.Cast<object>().Select(key => key.ToString() ?? "")
-                    }
-                );
+            _logger.LogError(ex, "Request failed for {RequestUri}", request.RequestUri);
+            throw;
         }
     }
 
@@ -147,11 +159,11 @@ public class GenericHttpClient : IGenericHttpClient
         {
             // Nếu nội dung lỗi không phải là JSON, chỉ cần đọc nó dưới dạng chuỗi
             var rawError = await response.Content.ReadAsStringAsync(cancellationToken);
-            // _logger.LogWarning("Could not deserialize error response as JSON. Raw response: {RawError}", rawError);
+            _logger.LogWarning("Could not deserialize error response as JSON. Raw response: {RawError}", rawError);
             errorMessage = rawError;
             error = new ApiErrorResponse() { Message = rawError, Errors = ex.Data.Values.Cast<object>().Select(key => key.ToString() ?? "") };
         }
-
+        _logger.LogError("API Error: {ErrorMessage}, Status Code: {StatusCode}", errorMessage, response.StatusCode);
         throw new ApiException(errorMessage, response.StatusCode, error);
     }
 }

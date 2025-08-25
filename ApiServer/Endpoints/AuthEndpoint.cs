@@ -70,7 +70,6 @@ internal static class AuthEndpoint
                     return Results.Ok(await GenerateTokensAsync(user, userManager, _configuration));
                 }
             }
-
             return Results.Unauthorized();
         });
     }

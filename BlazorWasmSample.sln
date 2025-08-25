@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{A98F91
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfCoreServices", "EfCoreServices\EfCoreServices.csproj", "{EA7F83B1-4EEC-4524-82F5-3F0EC55FFF23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericApiClient", "GenericApiClient\GenericApiClient.csproj", "{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{EA7F83B1-4EEC-4524-82F5-3F0EC55FFF23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EA7F83B1-4EEC-4524-82F5-3F0EC55FFF23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EA7F83B1-4EEC-4524-82F5-3F0EC55FFF23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +61,7 @@ Global
 		{5736A12F-4565-4371-89C8-46FF42708BDC} = {AC2025F6-7874-4FC2-A128-47D681BCFC5D}
 		{2DD4A1DF-8F02-40BB-BA21-F59FCD979057} = {A98F91E1-51A3-4AE1-BED1-8AC55FB80AA2}
 		{EA7F83B1-4EEC-4524-82F5-3F0EC55FFF23} = {A98F91E1-51A3-4AE1-BED1-8AC55FB80AA2}
+		{E682D8F3-60AB-4A7D-9C5C-B47A02008BA8} = {A98F91E1-51A3-4AE1-BED1-8AC55FB80AA2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {30A45B43-4D2E-4FDA-9BE3-9624D723F6B9}

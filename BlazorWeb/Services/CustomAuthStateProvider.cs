@@ -11,7 +11,6 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     private readonly HttpClient client;
     private readonly ISyncLocalStorageService LocalStorage;
 
-    //todo:còn nhiều lỗi khi hết phiên đăng nhập
     /// <summary>
     /// Constructor for CustomAuthStateProvider.
     /// </summary>
@@ -40,7 +39,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     /// Is the current authentication token expired?
     /// </summary>
     /// <returns></returns>
-    public bool IsExpired()
+    private bool IsExpired()
     {
         return DateTime.Now > LocalStorage.GetItem<DateTime>("expiresIn");
     }
@@ -113,7 +112,6 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         {
             Console.WriteLine($"Error during login: {ex.Message}");
         }
-
         return false;
     }
 

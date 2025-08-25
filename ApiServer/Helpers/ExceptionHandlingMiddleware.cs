@@ -84,7 +84,7 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
             _ => ((int Status, string Title, string ErrorCode, string Detail, string Type, IDictionary<string, string[]>? Errors))(500, "Lỗi máy chủ", "INTERNAL_SERVER_ERROR",
                                 "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
                                 "https://httpstatuses.io/500",
-                                new Dictionary<string, string[]> { ["TraceId"] = new[] { ctx.TraceIdentifier } }),
+                                new Dictionary<string, string[]> { ["TraceId"] = [ctx.TraceIdentifier] }),
         };
     }
 }
